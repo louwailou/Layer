@@ -63,6 +63,7 @@
 - (BOOL)hasDirectionControl {
   return (self.directionControl.superview != nil);
 }
+#pragma  添加 反射效果
 -(void)addOtherLayer{
     
     [[[self view] layer]setBackgroundColor:
@@ -100,10 +101,84 @@
     // Set the reflection layer’smask to the gradient layer
     [reflectionLayer setMask:gradientLayer];
     
-    
+  
     
     // Add the reflection layerto the view
     [[[self view] layer]addSublayer:reflectionLayer];
+      CFRelease(gradientLayer);
+    CFRelease(reflectionLayer);
+}
+// mask layer 只显示layer层和mask 重合的部分
+-(void)maskLayer{
+    UIImage *balloon = [UIImage imageNamed:@"ss"];
+    [[[self view] layer] setContents:(id)[balloon CGImage]];
+    CGMutablePathRef path =CGPathCreateMutable();
+    CGPathMoveToPoint(path, NULL, 0, 100);
+    CGPathAddLineToPoint(path,NULL, 200, 0);
+    CGPathAddLineToPoint(path, NULL, 200, 200);
+    CGPathAddLineToPoint(path, NULL, 0, 100);
+   CAShapeLayer* shapeLayer = [[CAShapeLayer alloc] init];
+    [shapeLayer setBounds:CGRectMake(0, 0, 200, 200)];
+    [shapeLayer setFillColor:[[UIColor purpleColor]CGColor]];
+    [shapeLayer setPosition:CGPointMake(200, 200)];
+    [shapeLayer setPath:path];
+    [shapeLayer setStrokeColor:[[UIColor redColor] CGColor]];
+    [shapeLayer setLineWidth:10.0f];
+    [shapeLayer setLineJoin:kCALineJoinRound];
+    [shapeLayer setLineDashPattern:
+     [NSArray arrayWithObjects:[NSNumber numberWithInt:50], [NSNumber numberWithInt:2],
+      nil]];  
+    [[[self view] layer]setMask:shapeLayer];
+    CFRelease(shapeLayer);
+    CFRelease(path);
+}
+-(void)executeImageViewMask{
+    
+    UIImageView* userHead = [[UIImageView alloc]initWithFrame:CGRectMake(100, 135, 80, 80)];
+    userHead.image = [UIImage imageNamed:@"ss.png"];
+    
+    //创建圆形遮罩，把用户头像变成圆形
+    UIBezierPath* path = [UIBezierPath bezierPathWithArcCenter:CGPointMake(40, 40) radius:40 startAngle:0 endAngle:2*M_PI clockwise:YES];
+    CAShapeLayer* shape = [CAShapeLayer layer];
+    
+    shape.strokeStart=.0;
+    shape.strokeEnd=1.0;
+    shape.strokeColor=[[UIColor redColor]CGColor];
+    shape.lineWidth=2;
+    [shape setPosition:CGPointMake(0, 0)];
+    shape.lineCap = kCALineCapSquare;
+    shape.path = path.CGPath;
+    userHead.layer.mask = shape;
+   // shape.fillColor=[[UIColor greenColor]CGColor];
+
+    [self.view addSubview:userHead];
+    [userHead release];
+    
+    
+}
+-(void)executePathLayer{
+    UIImage *balloon = [UIImage imageNamed:@"ss"];
+    [[[self view] layer] setContents:(id)[balloon CGImage]];
+    CGMutablePathRef path =CGPathCreateMutable();
+    CGPathMoveToPoint(path, NULL, 0, 100);
+    CGPathAddLineToPoint(path, NULL, 200, 0);
+    CGPathAddLineToPoint(path, NULL, 200,200);
+    CGPathAddLineToPoint(path, NULL, 0, 100);
+  CAShapeLayer*  shapeLayer = [[CAShapeLayer alloc] init];
+    [shapeLayer setBounds:CGRectMake(0, 0, 200, 200)];
+    [shapeLayer setFillColor:[[UIColor purpleColor] CGColor]];
+    [shapeLayer setPosition:CGPointMake(200, 200)];
+    [shapeLayer setPath:path];
+    [shapeLayer setStrokeColor:[[UIColor redColor] CGColor]];
+    [shapeLayer setLineWidth:10.0f];
+    [shapeLayer setLineJoin:kCALineJoinRound];
+    [shapeLayer setLineDashPattern:
+     [NSArray arrayWithObjects:[NSNumber numberWithInt:50], [NSNumber numberWithInt:2],
+      nil]];  
+    [[[self view] layer]addSublayer:shapeLayer];
+    
+    CFRelease(shapeLayer);
+    CFRelease(path);
 }
 #pragma mark Load and unload the view
 
@@ -111,32 +186,32 @@
     
     
     self.view = [[[UIView alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
-    
-    KACircleProgressView *progress = [[KACircleProgressView alloc] initWithFrame:CGRectMake(100, 150, 100, 100)];
-    [self.view addSubview:progress];
-    progress.trackColor = [UIColor whiteColor];
-    progress.progressColor = [UIColor orangeColor];
-    progress.progress = .7;
-    progress.progressWidth = 10;
-    
-    
-    
+//    
+//    KACircleProgressView *progress = [[KACircleProgressView alloc] initWithFrame:CGRectMake(100, 150, 100, 100)];
+//    [self.view addSubview:progress];
+//    progress.trackColor = [UIColor whiteColor];
+//    progress.progressColor = [UIColor orangeColor];
+//    progress.progress = .7;
+//    progress.progressWidth = 10;
+
     self.view.backgroundColor=[UIColor whiteColor];
-   UIImageView* userHead = [[UIImageView alloc]initWithFrame:CGRectMake(100, 135, 80, 80)];
-    userHead.image = [UIImage imageNamed:@"ss"];
-    
-    //创建圆形遮罩，把用户头像变成圆形
+    //[self executePathLayer];
+    [self executeImageViewMask];
+    //[self executeAnimationLayer];
+    //[self maskLayer];
+}
+-(void)executeAnimationLayer{
     UIBezierPath* path = [UIBezierPath bezierPathWithArcCenter:CGPointMake(40, 40) radius:40 startAngle:0 endAngle:2*M_PI clockwise:YES];
     CAShapeLayer* shape = [CAShapeLayer layer];
     
-    shape.strokeStart=.0;
+    shape.strokeStart=.0; //绘画的比例，如果是.5 只画一半
     
     shape.strokeColor=[[UIColor blackColor]CGColor];
     shape.lineWidth=2;
     [shape setPosition:CGPointMake(100, 100)];
     shape.lineCap = kCALineCapSquare;
     shape.path = path.CGPath;
-    //userHead.layer.mask = shape;
+  
     shape.fillColor=[[UIColor greenColor]CGColor];
     [self.view.layer addSublayer:shape];
     // 给这个layer添加动画效果
@@ -147,39 +222,36 @@
     [shape addAnimation:pathAnimation forKey:nil];
     [pathAnimation setValue:shape forKey:@"shape"];
     [pathAnimation setDelegate:self];
-   // [self.view.layer setMask:shape];
-    //[self.view addSubview:userHead];
+}
+-(void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag{
+   CAShapeLayer* shape= [anim valueForKey:@"shape"];
+    shape.strokeEnd=1.0;
+}
+-(void)executeAnimation{
     
-    return;
-  
-  self.view.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"Checkers.png"]];;
+    self.view.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"Checkers.png"]];;
     NSLog(@"self.view.frame=%@",NSStringFromCGRect(self.view.frame));
     
     NSLog(@"self.nav.frame=%@",NSStringFromCGRect(self.navigationController.navigationBar.frame));
     
     
-  self.viewToAnimate = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"ViewBackground.png"]] autorelease];
-  self.viewToAnimate.opaque = NO;
-  self.viewToAnimate.backgroundColor = [UIColor clearColor];
-  self.viewToAnimate.frame = CGRectMake(20., 74., 280., 280.);
-  
-  self.performAnimationButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-  self.performAnimationButton.frame = CGRectMake(10., 480-44., 300., 44.);
-  [self.performAnimationButton setTitle:@"Run Animation" forState:UIControlStateNormal];
-  [self.performAnimationButton addTarget:self action:@selector(performAnimation:) forControlEvents:UIControlEventTouchUpInside];
-  
-  NSArray *directionItems = [NSArray arrayWithObjects:@"T", @"R", @"B", @"L", @"TL", @"TR", @"BL", @"BR", nil];
-  self.directionControl = [[[UISegmentedControl alloc] initWithItems:directionItems] autorelease];
-  self.directionControl.selectedSegmentIndex = 0;
-  self.directionControl.frame = CGRectMake(10., 360., 300., 44.);
-  
-  [self.view addSubview:self.performAnimationButton];
-  [self.view addSubview:self.viewToAnimate];
-}
-
--(void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag{
-   CAShapeLayer* shape= [anim valueForKey:@"shape"];
-    shape.strokeEnd=1.0;
+    self.viewToAnimate = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"ViewBackground.png"]] autorelease];
+    self.viewToAnimate.opaque = NO;
+    self.viewToAnimate.backgroundColor = [UIColor clearColor];
+    self.viewToAnimate.frame = CGRectMake(20., 74., 280., 280.);
+    
+    self.performAnimationButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    self.performAnimationButton.frame = CGRectMake(10., 480-44., 300., 44.);
+    [self.performAnimationButton setTitle:@"Run Animation" forState:UIControlStateNormal];
+    [self.performAnimationButton addTarget:self action:@selector(performAnimation:) forControlEvents:UIControlEventTouchUpInside];
+    
+    NSArray *directionItems = [NSArray arrayWithObjects:@"T", @"R", @"B", @"L", @"TL", @"TR", @"BL", @"BR", nil];
+    self.directionControl = [[[UISegmentedControl alloc] initWithItems:directionItems] autorelease];
+    self.directionControl.selectedSegmentIndex = 0;
+    self.directionControl.frame = CGRectMake(10., 360., 300., 44.);
+    
+    [self.view addSubview:self.performAnimationButton];
+    [self.view addSubview:self.viewToAnimate];
 }
 #pragma mark Event Handling
 
